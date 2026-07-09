@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.1
+
+- **CI**: automated Open VSX publish + GitHub Release on `ext-v*` tags via
+  GitHub Actions (`.github/workflows/publish-extension.yml`).
+- Build-tooling bump: `@vscode/vsce` 2 → 3, `esbuild` 0.21 → 0.28.
+
 ## 0.1.0
 
 Initial implementation of the Cursor ⇄ Claude Code bridge (all four phases from

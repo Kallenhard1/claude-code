@@ -2,7 +2,7 @@
   "name": "cursor-claude-code-bridge",
   "displayName": "Claude Code Bridge",
   "description": "Run Claude Code inside Cursor on your Claude subscription (no API key), via the official claude CLI.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "publisher": "cursor-claude-bridge",
   "license": "MIT",
   "engines": {
