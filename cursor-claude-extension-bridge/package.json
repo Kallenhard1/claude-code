@@ -68,7 +68,13 @@
         },
         "claudeCodeBridge.permissionMode": {
           "type": "string",
-          "enum": ["default", "acceptEdits", "auto", "plan", "bypassPermissions"],
+          "enum": [
+            "default",
+            "acceptEdits",
+            "auto",
+            "plan",
+            "bypassPermissions"
+          ],
           "default": "default",
           "markdownDescription": "Permission mode passed to `claude --permission-mode`. In non-interactive mode, tools that need approval are denied under `default`; use `acceptEdits` or `auto` to let Claude Code act. `bypassPermissions` skips all checks — use only in trusted workspaces."
         },
@@ -84,7 +90,9 @@
         },
         "claudeCodeBridge.allowedTools": {
           "type": "array",
-          "items": { "type": "string" },
+          "items": {
+            "type": "string"
+          },
           "default": [],
           "description": "Extra tool patterns to pass to `claude --allowedTools` (e.g. \"Bash(git *)\", \"Edit\"). The bridge's own MCP tools are allowed automatically."
         }
@@ -107,9 +115,13 @@
   "devDependencies": {
     "@types/node": "^20.11.0",
     "@types/vscode": "^1.90.0",
-    "@vscode/vsce": "^2.26.0",
-    "esbuild": "^0.21.5",
+    "@vscode/vsce": "^3.9.2",
+    "esbuild": "^0.28.1",
     "ovsx": "^0.9.1",
     "typescript": "^5.4.5"
+  },
+  "vsce": {
+    "dependencies": true,
+    "yarn": false
   }
 }

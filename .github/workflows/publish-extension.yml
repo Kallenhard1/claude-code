@@ -1,0 +1,76 @@
+name: Publish Extension (Open VSX)
+
+# Publishes cursor-claude-extension-bridge to Open VSX when you push a tag
+# like `ext-v0.1.1`. The tag's version must match package.json's "version".
+#
+# One-time setup: add a repo secret named OVSX_PAT
+#   Settings -> Secrets and variables -> Actions -> New repository secret
+#   (create the token at https://open-vsx.org -> Settings -> Access Tokens)
+#
+# Release flow:
+#   1. bump "version" in cursor-claude-extension-bridge/package.json
+#   2. git commit + git tag ext-v<version> && git push --follow-tags
+#   The workflow then packages and publishes automatically.
+
+on:
+  push:
+    tags:
+      - "ext-v*"
+  workflow_dispatch: {} # allow manual runs from the Actions tab
+
+defaults:
+  run:
+    working-directory: cursor-claude-extension-bridge
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # needed to create the GitHub Release
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: cursor-claude-extension-bridge/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify tag matches package.json version
+        if: startsWith(github.ref, 'refs/tags/ext-v')
+        run: |
+          pkg_version="$(node -p "require('./package.json').version")"
+          tag_version="${GITHUB_REF_NAME#ext-v}"
+          echo "package.json: $pkg_version | tag: $tag_version"
+          if [ "$pkg_version" != "$tag_version" ]; then
+            echo "::error::Tag ($tag_version) does not match package.json version ($pkg_version)"
+            exit 1
+          fi
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Package (.vsix)
+        run: npm run package
+
+      - name: Upload .vsix artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: vsix
+          path: cursor-claude-extension-bridge/*.vsix
+
+      - name: Publish to Open VSX
+        env:
+          OVSX_PAT: ${{ secrets.OVSX_PAT }}
+        run: npx ovsx publish *.vsix -p "$OVSX_PAT"
+
+      - name: Create GitHub Release with .vsix
+        if: startsWith(github.ref, 'refs/tags/ext-v')
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Extension ${{ github.ref_name }}
+          files: cursor-claude-extension-bridge/*.vsix
+          generate_release_notes: true
