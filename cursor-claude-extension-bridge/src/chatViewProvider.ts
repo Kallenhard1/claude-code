@@ -7,6 +7,7 @@ import {
 } from "./claudeCli";
 import { buildContextPreamble } from "./editorContext";
 import { ToolBridgeServer, isLmToolsApiAvailable } from "./mcp/toolBridgeServer";
+import { DEFAULT_MODEL_ID, findBridgeModel, resolveCliModel } from "./models";
 
 /**
  * Sidebar webview hosting the chat UI. Streams `claude` CLI output into the
@@ -64,9 +65,11 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
       : isLmToolsApiAvailable()
         ? "tool bridge ready"
         : "tool bridge unavailable in this IDE";
+    const modelLabel =
+      findBridgeModel(this.modelId())?.label ?? this.modelId();
     this.post({
       type: "status",
-      value: `${describeCli(this.cliPath())} · ${bridgeState}${
+      value: `${describeCli(this.cliPath())} · ${modelLabel} · ${bridgeState}${
         this.sessionId ? " · session active" : ""
       }`,
     });
@@ -136,6 +139,7 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
           prompt: finalPrompt,
           cliPath: this.cliPath(),
           cwd: this.cwd(),
+          model: resolveCliModel(this.modelId()),
           resumeSessionId: this.sessionId,
           permissionMode: this.permissionMode(),
           allowedTools,
@@ -184,6 +188,10 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
 
   private permissionMode(): string {
     return this.config().get<string>("permissionMode", "default");
+  }
+
+  private modelId(): string {
+    return this.config().get<string>("model", DEFAULT_MODEL_ID);
   }
 
   private enableToolBridge(): boolean {

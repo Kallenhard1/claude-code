@@ -1,0 +1,17 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Run Claude Code Bridge Extension",
+      "type": "extensionHost",
+      "request": "launch",
+      "args": [
+        "--extensionDevelopmentPath=${workspaceFolder}/cursor-claude-extension-bridge"
+      ],
+      "outFiles": [
+        "${workspaceFolder}/cursor-claude-extension-bridge/dist/**/*.js"
+      ],
+      "preLaunchTask": "bridge: build"
+    }
+  ]
+}

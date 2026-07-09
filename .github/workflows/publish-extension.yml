@@ -65,7 +65,10 @@ jobs:
       - name: Publish to Open VSX
         env:
           OVSX_PAT: ${{ secrets.OVSX_PAT }}
-        run: npx ovsx publish *.vsix -p "$OVSX_PAT"
+        # --skip-duplicate: don't fail (and still create the GitHub Release)
+        # when the version was already published, e.g. manually via
+        # `npm run publish:ovsx`.
+        run: npx ovsx publish *.vsix -p "$OVSX_PAT" --skip-duplicate
 
       - name: Create GitHub Release with .vsix
         if: startsWith(github.ref, 'refs/tags/ext-v')

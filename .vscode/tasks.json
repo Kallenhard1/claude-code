@@ -1,0 +1,26 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "bridge: build",
+      "type": "shell",
+      "command": "npm run build",
+      "options": {
+        "cwd": "${workspaceFolder}/cursor-claude-extension-bridge"
+      },
+      "problemMatcher": "$esbuild",
+      "presentation": { "reveal": "silent" }
+    },
+    {
+      "label": "bridge: watch",
+      "type": "shell",
+      "command": "npm run watch",
+      "options": {
+        "cwd": "${workspaceFolder}/cursor-claude-extension-bridge"
+      },
+      "isBackground": true,
+      "problemMatcher": "$esbuild-watch",
+      "presentation": { "reveal": "silent" }
+    }
+  ]
+}

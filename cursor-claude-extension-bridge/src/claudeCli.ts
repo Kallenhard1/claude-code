@@ -58,6 +58,8 @@ export interface StreamOptions {
   cwd?: string;
   /** Continue an existing conversation. */
   resumeSessionId?: string;
+  /** Passed to `--model` (CLI alias like `opus`/`sonnet` or a full model id). */
+  model?: string;
   /** Passed to `--permission-mode` when not "default". */
   permissionMode?: string;
   /** Passed to `--allowedTools` (comma-joined). */
@@ -138,6 +140,9 @@ export function streamPrompt(
   ];
   if (options.resumeSessionId) {
     args.push("--resume", options.resumeSessionId);
+  }
+  if (options.model?.trim()) {
+    args.push("--model", options.model.trim());
   }
   if (options.permissionMode && options.permissionMode !== "default") {
     args.push("--permission-mode", options.permissionMode);
