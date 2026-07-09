@@ -1,0 +1,84 @@
+{
+  "name": "cursor-claude-code-bridge",
+  "displayName": "Claude Code Bridge",
+  "description": "Run Claude Code inside Cursor on your Claude subscription (no API key), via the official claude CLI.",
+  "version": "0.1.0",
+  "publisher": "cursor-claude-bridge",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "AI",
+    "Chat",
+    "Other"
+  ],
+  "keywords": [
+    "claude",
+    "claude code",
+    "cursor",
+    "anthropic",
+    "ai"
+  ],
+  "main": "./dist/extension.js",
+  "activationEvents": [],
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "claudeCodeBridge",
+          "title": "Claude Code",
+          "icon": "media/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "claudeCodeBridge": [
+        {
+          "type": "webview",
+          "id": "claudeCodeBridge.chat",
+          "name": "Chat"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "claudeCodeBridge.openChat",
+        "title": "Claude Code: Open Chat",
+        "category": "Claude Code"
+      },
+      {
+        "command": "claudeCodeBridge.newChat",
+        "title": "Claude Code: New Chat",
+        "category": "Claude Code"
+      }
+    ],
+    "configuration": {
+      "title": "Claude Code Bridge",
+      "properties": {
+        "claudeCodeBridge.cliPath": {
+          "type": "string",
+          "default": "",
+          "description": "Absolute path to the `claude` CLI binary. Leave empty to resolve it from PATH."
+        },
+        "claudeCodeBridge.cwd": {
+          "type": "string",
+          "default": "",
+          "description": "Working directory for the claude process. Leave empty to use the first workspace folder."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build": "node esbuild.js",
+    "watch": "node esbuild.js --watch",
+    "typecheck": "tsc --noEmit",
+    "package": "vsce package"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/vscode": "^1.90.0",
+    "esbuild": "^0.21.5",
+    "typescript": "^5.4.5"
+  }
+}
