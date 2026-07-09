@@ -1,15 +1,12 @@
-// Bundles the extension entry point into dist/extension.js.
-// `vscode` is provided by the host at runtime and must stay external.
+// Bundles the extension entry points into dist/.
+//  - dist/extension.js : extension host (vscode provided at runtime, external)
+//  - dist/mcp-bridge.js : standalone MCP stdio server launched by the CLI
 const esbuild = require("esbuild");
 
 const watch = process.argv.includes("--watch");
 
-/** @type {import('esbuild').BuildOptions} */
-const options = {
-  entryPoints: ["src/extension.ts"],
+const shared = {
   bundle: true,
-  outfile: "dist/extension.js",
-  external: ["vscode"],
   format: "cjs",
   platform: "node",
   target: "node18",
@@ -17,13 +14,30 @@ const options = {
   logLevel: "info",
 };
 
+/** @type {import('esbuild').BuildOptions[]} */
+const builds = [
+  {
+    ...shared,
+    entryPoints: ["src/extension.ts"],
+    outfile: "dist/extension.js",
+    external: ["vscode"],
+  },
+  {
+    ...shared,
+    entryPoints: ["src/mcp/mcpBridge.ts"],
+    outfile: "dist/mcp-bridge.js",
+  },
+];
+
 async function main() {
   if (watch) {
-    const ctx = await esbuild.context(options);
-    await ctx.watch();
+    for (const options of builds) {
+      const ctx = await esbuild.context(options);
+      await ctx.watch();
+    }
     console.log("[esbuild] watching...");
   } else {
-    await esbuild.build(options);
+    await Promise.all(builds.map((options) => esbuild.build(options)));
   }
 }
 

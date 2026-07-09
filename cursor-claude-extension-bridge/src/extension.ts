@@ -1,10 +1,13 @@
 import * as vscode from "vscode";
 import { ChatViewProvider } from "./chatViewProvider";
+import { ToolBridgeServer } from "./mcp/toolBridgeServer";
 
 export function activate(context: vscode.ExtensionContext): void {
-  const provider = new ChatViewProvider(context.extensionUri);
+  const bridge = new ToolBridgeServer(context);
+  const provider = new ChatViewProvider(context.extensionUri, bridge);
 
   context.subscriptions.push(
+    bridge,
     vscode.window.registerWebviewViewProvider(
       ChatViewProvider.viewType,
       provider,
