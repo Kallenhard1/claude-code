@@ -11,7 +11,7 @@ Run **Claude Code inside Cursor on your Claude subscription (Pro/Max) credits �
 - **Editor context** — a per-message toggle prepends the active file, selection, and diagnostics to your prompt.
 - **IDE tool bridge** — exposes this IDE's `vscode.lm` extension tools to Claude Code through a local MCP server. Feature-detected; degrades to chat-only where the API is unavailable (some Cursor builds). Cursor's *proprietary* tools (Composer, indexing) are not part of `vscode.lm` and cannot be bridged.
 - **Model picker** — pick Opus / Sonnet / Haiku from the status bar (`$(broadcast) Claude: …`) or the **Claude Code: Select Model** command; the choice drives both the panel and the Cursor endpoint.
-- **Cursor-chat endpoint** *(opt-in)* — a loopback OpenAI-compatible server so you can drive the bridge from **Cursor's own chat** via custom `*-bridge` models. See [Use from Cursor's native chat](#use-from-cursors-native-chat).
+- **Cursor-chat endpoint** *(opt-in, off by default)* — a loopback OpenAI-compatible server so you can drive the bridge from **Cursor's own chat** via custom `*-bridge` models. Advanced; requires a public tunnel. See [Use from Cursor's native chat](#use-from-cursors-native-chat-advanced-requires-a-public-url). The sidebar panel is the recommended, zero-config path.
 
 ## Why this shape
 
@@ -42,7 +42,7 @@ Then press **F5** in VS Code / Cursor to launch an Extension Development Host, o
 | `claudeCodeBridge.cliPath` | `""` | Absolute path to the `claude` binary. Empty = resolve from `PATH`. |
 | `claudeCodeBridge.cwd` | `""` | Working directory for the process. Empty = first workspace folder. |
 | `claudeCodeBridge.model` | `"opus-4.8-bridge"` | Model for the panel and Cursor endpoint. Change via the status bar or **Select Model**. |
-| `claudeCodeBridge.openaiEndpoint.enabled` | `true` | Run the loopback OpenAI-compatible endpoint for Cursor's native chat. |
+| `claudeCodeBridge.openaiEndpoint.enabled` | `false` | Opt-in. Run the loopback OpenAI-compatible endpoint for Cursor's native chat (advanced — also needs a public tunnel). The sidebar panel needs none of this. |
 | `claudeCodeBridge.openaiEndpoint.port` | `8788` | Port for the endpoint (bound to `127.0.0.1`). Base URL = `http://127.0.0.1:<port>/v1`. |
 | `claudeCodeBridge.openaiEndpoint.apiKey` | `""` | Optional bearer token required on endpoint requests. Empty = accept any (safe on loopback). |
 | `claudeCodeBridge.permissionMode` | `"default"` | `claude --permission-mode`. In non-interactive mode, tools needing approval are denied under `default`; use `acceptEdits`/`auto` to let Claude Code act. |
@@ -62,7 +62,7 @@ The **Claude Code panel** (the `$(broadcast)` icon in the Activity Bar) is the p
 > `Provider returned error: Access to private networks is forbidden`.
 > To use this path the endpoint must be reachable from the public internet (a tunnel — see below), and you should treat it as the ToS-flagged option it is. For everyday use, prefer the **sidebar panel** above.
 
-The extension also runs a small **OpenAI-compatible endpoint** (bound to `127.0.0.1`) so Cursor's own chat can talk to the bridge. To wire it up you must first make it publicly reachable:
+This path is **opt-in and off by default** — first set `claudeCodeBridge.openaiEndpoint.enabled` to `true` (and reload). The extension then runs a small **OpenAI-compatible endpoint** (bound to `127.0.0.1`) so Cursor's own chat can talk to the bridge. To wire it up you must first make it publicly reachable:
 
 0. **Expose the endpoint publicly** and **set a secret** — since anyone who reaches the URL runs `claude` on your subscription. Set `claudeCodeBridge.openaiEndpoint.apiKey` to a strong random value, then start a tunnel, e.g. `cloudflared tunnel --url http://127.0.0.1:8788` (or `ngrok http 8788`). Use the tunnel's `https://…/v1` as the base URL below, and the secret as the key.
 

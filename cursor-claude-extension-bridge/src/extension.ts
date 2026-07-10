@@ -49,9 +49,13 @@ export function activate(context: vscode.ExtensionContext): void {
         );
         break;
       default:
-        statusBar.text = `$(circle-slash) Claude: ${label}`;
-        statusBar.tooltip =
-          "Claude Code Bridge endpoint is off. Enable 'claudeCodeBridge.openaiEndpoint.enabled'.";
+        statusBar.text = `$(sparkle) Claude: ${label}`;
+        statusBar.tooltip = new vscode.MarkdownString(
+          `**Claude Code** — model for the chat panel: \`${modelId}\`\n\n` +
+            `_Click to switch model._\n\n` +
+            `The Cursor-native-chat endpoint is off (opt-in via ` +
+            `\`claudeCodeBridge.openaiEndpoint.enabled\`).`,
+        );
         statusBar.backgroundColor = undefined;
     }
   };

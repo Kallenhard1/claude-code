@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.2.2
+
+- **Sidebar panel is the default experience.** The Cursor-native-chat
+  endpoint (`openaiEndpoint.enabled`) now defaults to **false** — it no longer
+  auto-runs. Everyday use is the **Claude Code sidebar panel**, which drives
+  the `claude` CLI directly and needs no OpenAI model, no base-URL override,
+  and no tunnel. Enable the endpoint only for the advanced native-chat path
+  (which also requires a public tunnel, since Cursor's cloud refuses loopback
+  URLs).
+- **Status bar** no longer reads as an error when the endpoint is off — it
+  shows a neutral `Claude: <model>` that opens the model picker for the panel.
+
 ## 0.2.1
 
 - **Persistent bridge log**: endpoint log lines are now also written to a

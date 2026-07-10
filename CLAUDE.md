@@ -16,3 +16,7 @@ Also: `scripts/` holds standalone status-line shell scripts for Claude Code (rea
 Commands, the WSL+Cursor dev gotcha, the release flow, and the architecture overview live in **`cursor-claude-extension-bridge/CLAUDE.md`**, which loads automatically when you work under that directory.
 
 **Hard safety constraint (applies everywhere):** the extension must never read, store, or transmit Anthropic credentials — auth lives entirely inside the spawned `claude` CLI process. Real CLI binary only: never the Agent SDK, never token extraction. See `cursor-claude-extension-bridge/CLAUDE.md` and `docs/architecture.md` for the full ToS rationale.
+
+## Memory
+
+Persistent context lives under `.claude/` — rules, hooks, subagents, and the memory-layer guide in `.claude/CLAUDE.md`. Auto memory (Claude-written session notes) is machine-local at `~/.claude/projects/<this-repo>/memory/`.

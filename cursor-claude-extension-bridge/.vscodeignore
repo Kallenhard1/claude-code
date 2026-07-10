@@ -8,3 +8,5 @@ tsconfig.json
 **/*.ts
 .gitignore
 docs/**
+.claude/**
+CLAUDE.md

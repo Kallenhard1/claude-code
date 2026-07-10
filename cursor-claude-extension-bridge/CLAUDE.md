@@ -15,7 +15,7 @@ npm run install:cursor  # install the .vsix into the current Cursor (WSL) — re
 npm run publish:ovsx    # publish the built .vsix to Open VSX (needs OVSX_PAT env var)
 ```
 
-There are no tests. Verification is: typecheck + build, then either F5 (repo-root `.vscode/launch.json` launches an Extension Development Host) or package + install + reload, then `curl http://127.0.0.1:8788/v1/models` and exercise the chat.
+There are no tests. Verification is: typecheck + build, then either F5 (repo-root `.vscode/launch.json` launches an Extension Development Host) or package + install + reload, then exercise the **sidebar chat panel** (the default, override-free surface). The OpenAI endpoint is **opt-in** (`openaiEndpoint.enabled`, default false as of 0.2.2); only when it's enabled does `curl http://127.0.0.1:8788/v1/models` respond. To drive the endpoint headless without a Cursor host, use the run skill's driver (`node .claude/skills/run-cursor-claude-extension-bridge/driver.mjs`).
 
 ### Dev-environment gotcha (WSL + Cursor)
 

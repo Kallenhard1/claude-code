@@ -2,7 +2,7 @@
   "name": "cursor-claude-code-bridge",
   "displayName": "Claude Code Bridge",
   "description": "Run Claude Code inside Cursor on your Claude subscription (no API key), via the official claude CLI.",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "publisher": "cursor-claude-bridge",
   "license": "MIT",
   "engines": {
@@ -110,8 +110,8 @@
         },
         "claudeCodeBridge.openaiEndpoint.enabled": {
           "type": "boolean",
-          "default": true,
-          "markdownDescription": "Run a local, loopback-only OpenAI-compatible endpoint so **Cursor's native chat** can reach the bridge. Register the `*-bridge` models as custom OpenAI models in Cursor pointed at the endpoint's base URL.\n\n**Note:** routing subscription auth through a local shim is flagged as an Anthropic ToS non-goal in the project's architecture doc; enabled here at your request."
+          "default": false,
+          "markdownDescription": "**Off by default.** The everyday way to use this extension is the **Claude Code sidebar panel**, which needs no endpoint. Enable this only for the advanced path: a local, loopback-only OpenAI-compatible endpoint so **Cursor's native chat** can reach the bridge (register the `*-bridge` models as custom OpenAI models pointed at the endpoint's base URL — which also requires exposing it via a public tunnel, since Cursor's cloud refuses loopback URLs).\n\n**Note:** routing subscription auth through a local shim is flagged as an Anthropic ToS non-goal in the project's architecture doc."
         },
         "claudeCodeBridge.openaiEndpoint.port": {
           "type": "number",
