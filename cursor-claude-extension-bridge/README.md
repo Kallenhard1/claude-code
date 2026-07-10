@@ -52,13 +52,22 @@ Then press **F5** in VS Code / Cursor to launch an Extension Development Host, o
 
 > **Permissions note:** because runs are non-interactive (`claude -p`), tools that need approval are denied under the `default` mode and show up as errors. Set `permissionMode` to `acceptEdits` (edits/writes) or `auto` if you want Claude Code to act on your files.
 
-## Use from Cursor's native chat
+## Recommended: use the sidebar chat panel
 
-By default the extension also runs a small **loopback-only OpenAI-compatible endpoint** so Cursor's own chat can talk to the bridge. Wire it up once:
+The **Claude Code panel** (the `$(broadcast)` icon in the Activity Bar) is the primary, fully-supported way to use this extension. It drives the `claude` CLI directly in the extension host on your machine — **nothing is proxied through Cursor's cloud**, so there's no OpenAI model to register, no key, and no tunnel. Just open the panel and chat. Start here.
 
-1. Confirm the endpoint is live — the status bar shows `$(broadcast) Claude: <model>`. Run **Claude Code: Show Cursor Endpoint Info** to copy the base URL (default `http://127.0.0.1:8788/v1`).
-2. In Cursor: **Settings → Models → Add model**, then enable **Override OpenAI Base URL** and paste the base URL above.
-   - **No real OpenAI key is needed** — nothing here talks to OpenAI. Requests go to *your* loopback server (`127.0.0.1:8788`), which calls the `claude` CLI on your subscription. Cursor's form just refuses to save an empty key, so type any placeholder, e.g. `sk-local-bridge`. By default (`openaiEndpoint.apiKey` empty) the endpoint accepts any token. Only if you *set* `openaiEndpoint.apiKey` to a value of your own must the Cursor key field match it exactly.
+## Use from Cursor's native chat (advanced, requires a public URL)
+
+> **⚠️ This does not work with a plain `127.0.0.1` URL.** Cursor's custom-model feature does not call your base URL from your machine — it sends the request to **Cursor's servers**, which then try to reach the URL. From their servers a loopback address is a *private network*, which they block, so you get:
+> `Provider returned error: Access to private networks is forbidden`.
+> To use this path the endpoint must be reachable from the public internet (a tunnel — see below), and you should treat it as the ToS-flagged option it is. For everyday use, prefer the **sidebar panel** above.
+
+The extension also runs a small **OpenAI-compatible endpoint** (bound to `127.0.0.1`) so Cursor's own chat can talk to the bridge. To wire it up you must first make it publicly reachable:
+
+0. **Expose the endpoint publicly** and **set a secret** — since anyone who reaches the URL runs `claude` on your subscription. Set `claudeCodeBridge.openaiEndpoint.apiKey` to a strong random value, then start a tunnel, e.g. `cloudflared tunnel --url http://127.0.0.1:8788` (or `ngrok http 8788`). Use the tunnel's `https://…/v1` as the base URL below, and the secret as the key.
+
+1. Confirm the endpoint is live — the status bar shows `$(broadcast) Claude: <model>`. The **base URL is your tunnel's** `https://…/v1` (not the loopback URL, which Cursor's servers can't reach).
+2. In Cursor: **Settings → Models → Add model**, enable **Override OpenAI Base URL**, and paste the tunnel base URL. For the key field, enter the **secret you set in step 0** (`openaiEndpoint.apiKey`). Note this is *not* an OpenAI key — it's the bearer token that protects your now-public endpoint; nothing here talks to OpenAI.
 3. Add these model names (must match exactly):
    - `opus-4.8-bridge`
    - `sonnet-4.5-bridge`
@@ -71,10 +80,11 @@ The status bar reflects state at a glance: `$(broadcast)` = endpoint live, `$(wa
 
 This is a **Cursor-side** error — it means Cursor sent the model name to its *own* backend instead of to this bridge, so the request never reached the local endpoint. Run **Claude Code: Show Bridge Log** and repeat the request:
 
-- **No `→ POST /v1/chat/completions` line appears** → Cursor isn't routing to the endpoint. Fix the Cursor setup: enable **Override OpenAI Base URL** with `http://127.0.0.1:8788/v1`, put any non-empty placeholder in the key field (no real OpenAI key needed — see step 2), add the `*-bridge` model name **exactly**, toggle it **on**, and disable Cursor's built-in models so it doesn't fall back to them. Some Cursor builds also refuse a pure-`localhost` base URL and verify it via their servers — if so, expose the port through a tunnel (e.g. `http://127.0.0.1:8788` → a loopback-reachable URL).
+- **`Access to private networks is forbidden`** → you gave Cursor a `127.0.0.1` (or LAN) base URL. Cursor proxies through its cloud and blocks private addresses; the request never reaches your machine. There is no loopback workaround — use a public tunnel (step 0) or, better, the **sidebar panel**.
+- **No `→ POST /v1/chat/completions` line appears** → Cursor isn't routing to the endpoint. Check the tunnel base URL is correct and reachable, the key matches your `openaiEndpoint.apiKey` secret, the `*-bridge` model name is exact, the model is toggled **on**, and Cursor's built-in models are disabled so it doesn't fall back to them.
 - **The line appears and shows `→ claude --model opus`** → routing works; the bridge maps `opus-4.8-bridge` to the real model. Any error after that is a CLI/auth issue (check the log for `✗ …`).
 
-> **⚠️ Terms-of-Service caveat.** Routing Cursor's chat through a local OpenAI-compatible shim is the "wrap subscription auth as an endpoint" pattern that [`docs/architecture.md`](docs/architecture.md#L25) lists as an Anthropic **non-goal**. The endpoint is loopback-only and never reads your credentials (auth stays inside `claude`), but it is enabled here at explicit user request — understand the trade-off before relying on it. Set `claudeCodeBridge.openaiEndpoint.enabled` to `false` to turn it off.
+> **⚠️ Terms-of-Service & exposure caveat.** Routing Cursor's chat through an OpenAI-compatible shim is the "wrap subscription auth as an endpoint" pattern that [`docs/architecture.md`](docs/architecture.md#L25) lists as an Anthropic **non-goal**. The extension never reads your credentials (auth stays inside `claude`), but making the endpoint work in Cursor's native chat requires exposing it publicly via a tunnel — anyone who reaches that URL runs `claude` on *your* subscription, so a strong `openaiEndpoint.apiKey` is mandatory. This path is opt-in at explicit user request; the **sidebar panel** avoids all of it. Set `claudeCodeBridge.openaiEndpoint.enabled` to `false` to turn the endpoint off.
 
 ## Package, install & publish
 
