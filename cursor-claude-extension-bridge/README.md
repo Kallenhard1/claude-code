@@ -12,6 +12,7 @@ Run **Claude Code inside Cursor on your Claude subscription (Pro/Max) credits �
 - **IDE tool bridge** — exposes this IDE's `vscode.lm` extension tools to Claude Code through a local MCP server. Feature-detected; degrades to chat-only where the API is unavailable (some Cursor builds). Cursor's *proprietary* tools (Composer, indexing) are not part of `vscode.lm` and cannot be bridged.
 - **Model picker** — pick Opus / Sonnet / Haiku from the status bar (`$(broadcast) Claude: …`) or the **Claude Code: Select Model** command; the choice drives both the panel and the Cursor endpoint.
 - **Cursor-chat endpoint** *(opt-in, off by default)* — a loopback OpenAI-compatible server so you can drive the bridge from **Cursor's own chat** via custom `*-bridge` models. Advanced; requires a public tunnel. See [Use from Cursor's native chat](#use-from-cursors-native-chat-advanced-requires-a-public-url). The sidebar panel is the recommended, zero-config path.
+- **`ask_claude_code` MCP tool** *(opt-in)* — register a local MCP server (via **Claude Code: Copy Agent MCP Config**) so **Cursor's native Agent** can delegate a task to Claude Code as a tool call. Local, no tunnel, no OpenAI model. See [Use from Cursor's native Agent](#use-from-cursors-native-agent-mcp-ask_claude_code).
 
 ## Why this shape
 
@@ -55,6 +56,40 @@ Then press **F5** in VS Code / Cursor to launch an Extension Development Host, o
 ## Recommended: use the sidebar chat panel
 
 The **Claude Code panel** (the `$(broadcast)` icon in the Activity Bar) is the primary, fully-supported way to use this extension. It drives the `claude` CLI directly in the extension host on your machine — **nothing is proxied through Cursor's cloud**, so there's no OpenAI model to register, no key, and no tunnel. Just open the panel and chat. Start here.
+
+## Use from Cursor's native Agent (MCP `ask_claude_code`)
+
+If what you want is for **Cursor's own Agent** to hand work to Claude Code, this is the path that uses a *supported* Cursor surface — its **MCP** integration — instead of the OpenAI-endpoint shim below. It runs entirely on your machine: **no tunnel, no OpenAI model, no exposed port.**
+
+Cursor's Agent launches a small stdio MCP server (`dist/ask-claude-server.js`) that exposes one tool, `ask_claude_code(prompt, cwd?, model?)`. When the Agent calls it, the server spawns `claude -p` on your subscription and returns the answer. No credential is embedded — auth stays inside the spawned `claude` process.
+
+1. Run **Claude Code: Copy Agent MCP Config** (Command Palette). It copies a ready-to-paste `mcpServers` block to your clipboard, with the correct absolute path and your current settings (`cwd`, model, `permissionMode`, `cliPath`, `allowedTools`) baked in as env defaults. Pick **Show Config** to view it first.
+2. Paste it into your Cursor MCP config — **Cursor Settings → MCP → Add new**, or a `.cursor/mcp.json` (workspace) / `~/.cursor/mcp.json` (global) file:
+   ```json
+   {
+     "mcpServers": {
+       "claude-code": {
+         "command": "/path/to/cursor-node",
+         "args": ["/abs/path/to/dist/ask-claude-server.js"],
+         "env": { "ELECTRON_RUN_AS_NODE": "1", "CLAUDE_BRIDGE_CWD": "…" }
+       }
+     }
+   }
+   ```
+3. In Cursor's Agent, the `ask_claude_code` tool now appears. Ask the Agent to "use ask_claude_code to …" and it will delegate to Claude Code.
+
+**What Claude Code may DO** through this tool is bounded by the permission mode (`CLAUDE_BRIDGE_PERMISSION_MODE`, from your `claudeCodeBridge.permissionMode` setting). In the `default` mode it answers and reads but **won't make changes**; set the setting to `acceptEdits` (then re-copy the config) to let it edit files. Env knobs the generated config uses: `CLAUDE_BRIDGE_CWD`, `CLAUDE_BRIDGE_MODEL` (`opus`/`sonnet`/`haiku`), `CLAUDE_BRIDGE_PERMISSION_MODE`, `CLAUDE_BRIDGE_CLI_PATH`, `CLAUDE_BRIDGE_ALLOWED_TOOLS`, `CLAUDE_BRIDGE_TIMEOUT_MS` (default 600000), and `CLAUDE_BRIDGE_DEBUG` (see below).
+
+### Confirming a response really came from Claude Code
+
+The Agent's prose looks the same whether it invoked the tool or answered itself, so verify provenance rather than trusting the wording:
+
+- **Test headless first**, where Cursor's model isn't in the loop at all — drive the server directly over stdio (or via `npx @modelcontextprotocol/inspector`). Anything it returns came from the bridge.
+- **Set `CLAUDE_BRIDGE_DEBUG=1`** in the config's `env`. Each call then logs to **stderr** (never stdout, which carries JSON-RPC) — `server ready …`, `call → claude --model … · prompt=N chars`, `done in Nms · answer=N chars` — and Cursor surfaces MCP-server stderr in its MCP logs. Only metadata is logged, never the prompt/answer text or any credential.
+- **Ask for a runtime fact only the real CLI could know**: "use ask_claude_code to run `git rev-parse HEAD`" (or `pwd`, or quote a file line), then check the value. Cursor's own model can't run `claude` and will miss it.
+- **Watch the tool-call card**, not the narration — its raw result is ground truth.
+
+> **⚠️ ToS note.** Like the endpoint below, this makes your subscription drivable by another agent, so it's shipped **opt-in** — nothing runs until you paste the config in. Unlike the endpoint it stays local (only MCP clients you configure can reach it) and embeds no credential. The **sidebar panel** remains the simplest fully-supported path.
 
 ## Use from Cursor's native chat (advanced, requires a public URL)
 

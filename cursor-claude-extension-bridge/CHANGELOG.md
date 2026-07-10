@@ -1,5 +1,32 @@
 # Changelog
 
+## 0.3.0
+
+- **`ask_claude_code` MCP tool — Cursor's native Agent can now delegate to
+  Claude Code.** A new standalone stdio MCP server (`dist/ask-claude-server.js`)
+  exposes one tool, `ask_claude_code(prompt, cwd?, model?)`, that spawns
+  `claude -p` on your subscription and returns the answer. This is the *reverse*
+  of the existing tool bridge (which exposes IDE tools *to* the CLI), and it
+  uses a **Cursor-supported surface** (MCP), so it needs **no tunnel, no OpenAI
+  model, and no exposed port** — unlike the OpenAI endpoint. Runs locally; no
+  credential is embedded (auth stays inside the spawned `claude`).
+  - New command **Claude Code: Copy Agent MCP Config** generates a ready-to-paste
+    `mcpServers` block (correct absolute path + your current settings as env
+    defaults) for Cursor's MCP config.
+  - What Claude Code may *do* through the tool is bounded by
+    `claudeCodeBridge.permissionMode`; `default` reads/answers only. Env knobs:
+    `CLAUDE_BRIDGE_{CWD,MODEL,PERMISSION_MODE,CLI_PATH,ALLOWED_TOOLS,TIMEOUT_MS}`.
+  - **`CLAUDE_BRIDGE_DEBUG=1`** logs each invocation to **stderr** (server
+    ready / call / done + timing; metadata only, no prompt text or credential),
+    which Cursor surfaces in its MCP logs — so you can confirm a response really
+    came through the bridge and not from Cursor's own model. See the README's
+    "Confirming a response really came from Claude Code".
+  - **Opt-in** by nature (nothing runs until you paste the config in). Like the
+    OpenAI endpoint, it makes the subscription drivable by another agent, but it
+    stays local. See the README's "Use from Cursor's native Agent".
+  - Build now emits a **third bundle**; `dist/ask-claude-server.js` is spawned as
+    its own process and stays independently runnable.
+
 ## 0.2.2
 
 - **Sidebar panel is the default experience.** The Cursor-native-chat

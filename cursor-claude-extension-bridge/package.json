@@ -2,7 +2,7 @@
   "name": "cursor-claude-code-bridge",
   "displayName": "Claude Code Bridge",
   "description": "Run Claude Code inside Cursor on your Claude subscription (no API key), via the official claude CLI.",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "publisher": "cursor-claude-bridge",
   "license": "MIT",
   "engines": {
@@ -67,6 +67,11 @@
       {
         "command": "claudeCodeBridge.restartEndpoint",
         "title": "Claude Code: Restart Cursor Endpoint",
+        "category": "Claude Code"
+      },
+      {
+        "command": "claudeCodeBridge.copyAgentMcpConfig",
+        "title": "Claude Code: Copy Agent MCP Config",
         "category": "Claude Code"
       },
       {

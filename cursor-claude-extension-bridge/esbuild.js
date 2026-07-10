@@ -1,6 +1,9 @@
 // Bundles the extension entry points into dist/.
-//  - dist/extension.js : extension host (vscode provided at runtime, external)
-//  - dist/mcp-bridge.js : standalone MCP stdio server launched by the CLI
+//  - dist/extension.js       : extension host (vscode provided at runtime, external)
+//  - dist/mcp-bridge.js       : standalone MCP stdio server launched by the CLI
+//                               (proxies IDE tools INTO Claude Code)
+//  - dist/ask-claude-server.js: standalone MCP stdio server launched by an MCP
+//                               client (proxies a prompt OUT to Claude Code)
 const esbuild = require("esbuild");
 
 const watch = process.argv.includes("--watch");
@@ -26,6 +29,11 @@ const builds = [
     ...shared,
     entryPoints: ["src/mcp/mcpBridge.ts"],
     outfile: "dist/mcp-bridge.js",
+  },
+  {
+    ...shared,
+    entryPoints: ["src/mcp/askClaudeServer.ts"],
+    outfile: "dist/ask-claude-server.js",
   },
 ];
 
