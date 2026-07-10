@@ -57,7 +57,8 @@ Then press **F5** in VS Code / Cursor to launch an Extension Development Host, o
 By default the extension also runs a small **loopback-only OpenAI-compatible endpoint** so Cursor's own chat can talk to the bridge. Wire it up once:
 
 1. Confirm the endpoint is live — the status bar shows `$(broadcast) Claude: <model>`. Run **Claude Code: Show Cursor Endpoint Info** to copy the base URL (default `http://127.0.0.1:8788/v1`).
-2. In Cursor: **Settings → Models → Add model**, then enable **Override OpenAI Base URL** and paste the base URL above. Enter any non-empty API key (or the one from `openaiEndpoint.apiKey` if you set it).
+2. In Cursor: **Settings → Models → Add model**, then enable **Override OpenAI Base URL** and paste the base URL above.
+   - **No real OpenAI key is needed** — nothing here talks to OpenAI. Requests go to *your* loopback server (`127.0.0.1:8788`), which calls the `claude` CLI on your subscription. Cursor's form just refuses to save an empty key, so type any placeholder, e.g. `sk-local-bridge`. By default (`openaiEndpoint.apiKey` empty) the endpoint accepts any token. Only if you *set* `openaiEndpoint.apiKey` to a value of your own must the Cursor key field match it exactly.
 3. Add these model names (must match exactly):
    - `opus-4.8-bridge`
    - `sonnet-4.5-bridge`
@@ -70,7 +71,7 @@ The status bar reflects state at a glance: `$(broadcast)` = endpoint live, `$(wa
 
 This is a **Cursor-side** error — it means Cursor sent the model name to its *own* backend instead of to this bridge, so the request never reached the local endpoint. Run **Claude Code: Show Bridge Log** and repeat the request:
 
-- **No `→ POST /v1/chat/completions` line appears** → Cursor isn't routing to the endpoint. Fix the Cursor setup: enable **Override OpenAI Base URL** with `http://127.0.0.1:8788/v1`, set a non-empty OpenAI API key, add the `*-bridge` model name **exactly**, toggle it **on**, and disable Cursor's built-in models so it doesn't fall back to them. Some Cursor builds also refuse a pure-`localhost` base URL and verify it via their servers — if so, expose the port through a tunnel (e.g. `http://127.0.0.1:8788` → a loopback-reachable URL).
+- **No `→ POST /v1/chat/completions` line appears** → Cursor isn't routing to the endpoint. Fix the Cursor setup: enable **Override OpenAI Base URL** with `http://127.0.0.1:8788/v1`, put any non-empty placeholder in the key field (no real OpenAI key needed — see step 2), add the `*-bridge` model name **exactly**, toggle it **on**, and disable Cursor's built-in models so it doesn't fall back to them. Some Cursor builds also refuse a pure-`localhost` base URL and verify it via their servers — if so, expose the port through a tunnel (e.g. `http://127.0.0.1:8788` → a loopback-reachable URL).
 - **The line appears and shows `→ claude --model opus`** → routing works; the bridge maps `opus-4.8-bridge` to the real model. Any error after that is a CLI/auth issue (check the log for `✗ …`).
 
 > **⚠️ Terms-of-Service caveat.** Routing Cursor's chat through a local OpenAI-compatible shim is the "wrap subscription auth as an endpoint" pattern that [`docs/architecture.md`](docs/architecture.md#L25) lists as an Anthropic **non-goal**. The endpoint is loopback-only and never reads your credentials (auth stays inside `claude`), but it is enabled here at explicit user request — understand the trade-off before relying on it. Set `claudeCodeBridge.openaiEndpoint.enabled` to `false` to turn it off.
