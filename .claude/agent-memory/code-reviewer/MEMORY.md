@@ -6,7 +6,7 @@ Seed patterns for the Cursor ⇄ Claude Code bridge. The subagent updates this f
 
 - No Anthropic credential is read, stored, logged, or transmitted; auth stays inside the spawned `claude` CLI.
 - OpenAI-compatible endpoint: `127.0.0.1` only, opt-in (`openaiEndpoint.enabled`).
-- Two independent esbuild bundles: `dist/extension.js` and `dist/mcp-bridge.js` — no shared-runtime imports.
+- Three independent esbuild bundles: `dist/extension.js`, `dist/mcp-bridge.js` (IDE tools → CLI), and `dist/ask-claude-server.js` (`ask_claude_code` tool → CLI) — the two stdio bundles stay `vscode`-free; reusing pure-`node:` modules across bundles is fine, but no shared-runtime imports.
 - `models.ts`: unknown `*-bridge` ids resolve to `undefined` so the CLI uses its default model.
 
 ## Layout
@@ -23,3 +23,7 @@ Seed patterns for the Cursor ⇄ Claude Code bridge. The subagent updates this f
 
 - No automated tests; verify with `npm run typecheck` + `npm run build`.
 - Headless endpoint smoke: `node .claude/skills/run-cursor-claude-extension-bridge/driver.mjs`.
+
+## Learnings
+
+- [streamPrompt abort semantics](streamprompt-abort-semantics.md) — `done` RESOLVES (not rejects) on abort; timeout catch-branches in callers are dead code.
